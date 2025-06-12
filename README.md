@@ -15,9 +15,12 @@ velocity_conversion_factor = 3
 
 def main():
     canvas = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT)
+    draw_room(canvas)
+    draw_backboard(canvas)
     ASCII_art() #done
 #Game settings = [name, difficulty, shooter]
     game_settings = menu() #done
+    name = game_settings[0]
     difficulty = game_settings[1]
     shooter = game_settings[2]
     if difficulty == str("easy"):
@@ -30,12 +33,13 @@ def main():
 #Objects for win/lose conditions
     draw_hoop(canvas, hoop_size) #done
     draw_net(canvas, hoop_size, net_count) #done
-    draw_backboard(canvas, hoop_size)
     draw_shooter(canvas, shooter) #done
+    draw_post(canvas)
     #Make ball object - done
     ball = 1
     overlapping_ball_and_hoop = []
     physics_state = {}
+    count = 0
 #Enter game loop
     while ball not in overlapping_ball_and_hoop:
         ball = canvas.create_oval(175, 400, 175 + ball_size, 400 + ball_size, "orange", "black")        
@@ -65,7 +69,7 @@ def main():
     #Ball hits front rim/net
             overlapping_ball_and_net = (canvas.find_overlapping(
                 midpoint - hoop_size/2 - 2,
-                bottom_y - 5,
+                bottom_y - 4,
                 midpoint - hoop_size/2 - 2,
                 bottom_y + 5
             ))
@@ -76,11 +80,12 @@ def main():
                 velocity_y = physics_state[velocity_y]
                 gravity = physics_state[gravity]
                 print("Brick! Try again!\n")
+                count += 1
     #Ball overshoots the hoop
             overlapping_ball_and_strike_zone = (canvas.find_overlapping(
-                midpoint + hoop_size / 2 + ball_size/5,
-                bottom_y + 5,
-                midpoint + hoop_size / 2 + ball_size/5,
+                midpoint + hoop_size / 2 + 3,
+                bottom_y - 4,
+                midpoint + hoop_size / 2 + 3,
                 bottom_y
             ))
             if ball in overlapping_ball_and_strike_zone:
@@ -90,6 +95,7 @@ def main():
                 velocity_y = physics_state[velocity_y]
                 gravity = physics_state[gravity]
                 print("So close. Try again!\n")
+                count += 1
     #Ball hits floor
             overlapping_ball_and_floor = (canvas.find_overlapping(
                 0, 
@@ -104,6 +110,7 @@ def main():
                 velocity_y = physics_state[velocity_y]
                 gravity = physics_state[gravity]
                 print("Basket's up there! Try again!\n")
+                count += 1
     #Ball hits ceiling
             overlapping_ball_and_ceiling = (canvas.find_overlapping(
                 0, 
@@ -118,6 +125,7 @@ def main():
                 velocity_y = physics_state[velocity_y]
                 gravity = physics_state[gravity]
                 print("That shot might have worked outside. Try again!\n")
+                count += 1
     #Ball hits back wall
             overlapping_ball_and_back_wall = (canvas.find_overlapping(
                 CANVAS_WIDTH, 
@@ -131,14 +139,15 @@ def main():
                 velocity_x = physics_state[velocity_x]
                 velocity_y = physics_state[velocity_y]
                 gravity = physics_state[gravity]
-                print("Home Run! But wrong sport. Try again!\n")  
+                print("Home Run! But wrong sport. Try again!\n")
+                count += 1  
                     
     #Set hit box for win condition
             overlapping_ball_and_hoop = (canvas.find_overlapping(
                 midpoint - hoop_size/2 + ball_size/2,
-                bottom_y + 5,
+                bottom_y + 3,
                 midpoint + hoop_size/2 - ball_size/2 ,
-                bottom_y + 5
+                bottom_y + 3
         ))
             if ball in overlapping_ball_and_hoop:
                 physics_state = freeze(velocity, velocity_x, velocity_y, gravity)
@@ -146,7 +155,25 @@ def main():
                 velocity_x = physics_state[velocity_x]
                 velocity_y = physics_state[velocity_y]
                 gravity = physics_state[gravity]
-                print("Boomshackalacka! You're the ultimate Hoopsketball champion!")        
+                draw_hoop(canvas, hoop_size)
+                draw_net(canvas, hoop_size, net_count)
+                if count == 0:
+                    print("Wow, first try!")
+                if difficulty == str("easy"):
+                    print("Try medium on for size next time!")
+                if difficulty == str("medium"):
+                    print("On to hard mode!")
+                if difficulty == str("hard"):
+                    print("Boomshackalacka! You're the ultimate Hoopsketball champion!")
+                if shooter == str("Larry") or shooter == str("larry"):
+                    color_text = "green"
+                if shooter == str("Kareem") or shooter == str("kareem"):
+                    color_text = "purple"
+                if shooter == str("Diana") or shooter == str("diana"):
+                    color_text = "purple"
+                canvas.create_text(100, 100, f'Congratulations, {name}!', font = 'Arial', font_size = 50, color = color_text)
+                canvas.create_text(100, 150, "You're the ultimate champion!", font = 'Arial', font_size = 50, color = color_text)
+
 
     #Victory condition - hangs banner with user's name on the wall
        
@@ -156,19 +183,19 @@ def freeze(velocity, velocity_x, velocity_y, gravity):
 
 def ASCII_art():
     print("""
-        Mike Billet's
+Mike Billet's
         
-         __   __    __     __    ____    ____   _   __  ____  _______  ____      _    _     _
-        |  | |  |  /  \   /  \  |  _ \  /  _ \ | | / / |  __||__   __||    \    / \  | |   | |
-        |  | |  | | /\ | | /\ | | | | ||  / \_|| |/ /  | |      | |   | |\  |  / ^ \ | |   | |
-        |  |_|  | ||  || ||  || | |_| | \ \__  |   /   | |__    | |   | |/ /  / /_\ \| |   | |
-        |   _   | ||  || ||  || |  __/   \__ \ |   \   |  __|   | |   |  _ \  |  _  || |   | |
-        |  | |  | ||  || ||  || | |      _  \ || |\ \  | |      | |   | / \ | | | | || |   | |
-        |  | |  | | \/ | | \/ | | |     | \_/ /| | \ \ | |__    | |   | \_/ | | | | || |__ | |__
-        |__| |__|  \__/   \__/  |_|     \____/ |_|  \_\|____|   |_|   |____/  |_| |_||____||____|
+ _   _   __    __   ___     _         __  ____  __          _   _
+| | | | /  \  /  \ |   \   / \ || // | _||_  _||  \   /\   ||  ||
+| | | || /\ || /\ || || | //\_|||//  ||    ||  ||\ | //\\\  ||  ||
+| |_| |||  ||||  ||| || | \\\   | /   ||_   ||  ||// //__\\\ ||  ||
+|  _  |||  ||||  |||  _/   \\\  | \   | _|  ||  | \  | __ | ||  ||
+| | | |||  ||||  ||| |    _ \\\ || \  ||    ||  |/\| ||  || ||  ||
+| | | || \/ || \/ || |   | \// ||\ \ ||_   ||  |\/| ||  || ||_ ||__
+|_| |_| \__/  \__/ |_|    \_/  || \_\|__|  ||  |__/ ||  || |__||___|
 
-        Software Version 7.0
-        """)
+Software Version 7.0
+""")
 
 def menu():
     name = input("Enter your name to continue: ")
@@ -178,14 +205,19 @@ def menu():
     while difficulty != str("easy") and difficulty != str("medium") and difficulty != str("hard"):
         difficulty = input("Enter difficulty (easy/medium/hard): ")
     shooter = str("blank")
-    while shooter != str("Kareem") and shooter != str("Larry") and shooter != str("Diana"):
+    while shooter != str("kareem") and shooter != str("larry") and shooter != str("diana") and shooter != str("Kareem") and shooter != str("Larry") and shooter != str("Diana"):
         shooter = input("Pick your shooter style (Kareem, Larry, or Diana): ")
-    print(f"Hello {name}, you find yourself in the grand Hoopsketball championship. \nDo you have what it takes to become the grand Hoopsketball champion?")
+        print()
+    print(f"Hello {name}, you find yourself in the ancient and noble game of Hoopsketball. \nDo you have what it takes to become the grand Hoopsketball champion?")
     game_settings = [name, difficulty, shooter]
     return game_settings
 
+def draw_room(canvas):
+    canvas.create_rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "tan")
+    canvas.create_rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT - 100, "beige")
+   
 
-def draw_backboard(canvas, hoop_size):   
+def draw_backboard(canvas):   
     fill = '#ADD8E6'
     outline = "black"
     canvas.create_rectangle(
@@ -196,6 +228,13 @@ def draw_backboard(canvas, hoop_size):
         fill,
         outline
     )
+    #draws post
+    canvas.create_rectangle(
+        midpoint - 5,
+        bottom_y,
+        midpoint + 5,
+        CANVAS_HEIGHT - 50,
+        "brown")
 
 def draw_hoop(canvas, hoop_size):
     hoop = canvas.create_oval(
@@ -206,16 +245,15 @@ def draw_hoop(canvas, hoop_size):
         'white',
         "black"
     )
+def draw_post(canvas):
+        canvas.create_rectangle(
+        midpoint - 5,
+        bottom_y - 5,
+        midpoint + 5,
+        bottom_y + 5,
+        "brown")
 
 def draw_net(canvas, hoop_size, net_count):   
-#draws post
-    canvas.create_rectangle(
-        midpoint - 5,
-        bottom_y,
-        midpoint + 5,
-        CANVAS_HEIGHT,
-        "brown"
-    )
     for i in range (net_count - 1):
         canvas.create_line(
             midpoint - hoop_size/2 + ((i + 1) * hoop_size / net_count),
@@ -237,15 +275,15 @@ def draw_net(canvas, hoop_size, net_count):
         )        
 
 def draw_shooter(canvas, shooter):
-    if shooter == str("Larry"):
+    if shooter == str("Larry") or shooter == str("larry"):
         skin_color = '#FBD99F'
         jersey_fill = "green"
         jersey_outline = "white"
-    if shooter == str("Kareem"):
+    if shooter == str("Kareem") or shooter == str("kareem"):
         skin_color = '#B59050'
         jersey_fill = "yellow"
         jersey_outline = "purple"
-    if shooter == str("Diana"):
+    if shooter == str("Diana") or shooter == str("diana"):
         skin_color = '#D1AF73'
         jersey_fill = "purple"
         jersey_outline = "black"
@@ -324,7 +362,7 @@ def draw_shooter(canvas, shooter):
         skin_color
     )
 #Hair (Diana only)
-    if shooter == str("Diana"):
+    if shooter == str("Diana") or shooter == str("diana"):
             canvas.create_oval(
             player_midpoint - head_size/1.6,
             head_apex,
