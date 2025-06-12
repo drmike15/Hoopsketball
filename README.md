@@ -1,1 +1,347 @@
-Hoopsketball features characters inspired by but not legally representing any real people. Get a life, folks. 
+```python
+from graphics import Canvas
+import math
+    
+CANVAS_WIDTH = 800
+CANVAS_HEIGHT = 600
+PAUSE_TIME = 1/50
+left_x = 600
+top_y = 250
+right_x = 700
+bottom_y = 350
+midpoint = (left_x + right_x)/2
+ball_size = 40
+velocity_conversion_factor = 3
+
+def main():
+    canvas = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT)
+    ASCII_art() #done
+#Game settings = [name, difficulty, shooter]
+    game_settings = menu() #done
+    difficulty = game_settings[1]
+    shooter = game_settings[2]
+    if difficulty == str("easy"):
+        hoop_size = 100
+    if difficulty == str("medium"):
+        hoop_size = 75
+    if difficulty == str("hard"):
+        hoop_size = 40
+    net_count = hoop_size // 5 
+#Objects for win/lose conditions
+    draw_hoop(canvas, hoop_size) #done
+    draw_net(canvas, hoop_size, net_count) #done
+    draw_backboard(canvas, hoop_size)
+    draw_shooter(canvas, shooter) #done
+    #Make ball object - done
+    ball = 1
+    overlapping_ball_and_hoop = []
+    physics_state = {}
+#Enter game loop
+    while ball not in overlapping_ball_and_hoop:
+        ball = canvas.create_oval(175, 400, 175 + ball_size, 400 + ball_size, "orange", "black")        
+    #Get user input for launch angle
+        angle = 91
+        while angle < 0 or angle > 90:
+            angle = float(input("Enter your launch angle (0 to 90): "))
+    #Make launch velocity-determinator
+    #Get user input for launch velocity
+        velocity = 101
+        while velocity < 0 or velocity > 100:
+            velocity = float(input("Enter your launch speed (0 to 100): "))
+    #Define rules for projectile movement
+        #V_x = linear
+        #V_y affected follows gravity
+        gravity = 1
+        velocity = velocity / velocity_conversion_factor
+        velocity_x = math.cos(3.1415 * angle/180) * velocity
+        velocity_y = math.sin(3.1415 * angle/180) * velocity
+    #Ball motion program
+        while velocity_y > - 50 and velocity != 0:
+            velocity_y = velocity_y - gravity
+            canvas.move(ball, velocity_x, -velocity_y )
+            time.sleep(PAUSE_TIME)
+
+    #Set hit box for lose conditions
+    #Ball hits front rim/net
+            overlapping_ball_and_net = (canvas.find_overlapping(
+                midpoint - hoop_size/2 - 2,
+                bottom_y - 5,
+                midpoint - hoop_size/2 - 2,
+                bottom_y + 5
+            ))
+            if ball in overlapping_ball_and_net:
+                physics_state = freeze(velocity, velocity_x, velocity_y, gravity)
+                velocity = physics_state[velocity]
+                velocity_x = physics_state[velocity_x]
+                velocity_y = physics_state[velocity_y]
+                gravity = physics_state[gravity]
+                print("Brick! Try again!\n")
+    #Ball overshoots the hoop
+            overlapping_ball_and_strike_zone = (canvas.find_overlapping(
+                midpoint + hoop_size / 2 + ball_size/5,
+                bottom_y + 5,
+                midpoint + hoop_size / 2 + ball_size/5,
+                bottom_y
+            ))
+            if ball in overlapping_ball_and_strike_zone:
+                physics_state = freeze(velocity, velocity_x, velocity_y, gravity)
+                velocity = physics_state[velocity]
+                velocity_x = physics_state[velocity_x]
+                velocity_y = physics_state[velocity_y]
+                gravity = physics_state[gravity]
+                print("So close. Try again!\n")
+    #Ball hits floor
+            overlapping_ball_and_floor = (canvas.find_overlapping(
+                0, 
+                CANVAS_HEIGHT,
+                CANVAS_WIDTH,
+                CANVAS_HEIGHT
+            ))
+            if ball in overlapping_ball_and_floor:
+                physics_state = freeze(velocity, velocity_x, velocity_y, gravity)
+                velocity = physics_state[velocity]
+                velocity_x = physics_state[velocity_x]
+                velocity_y = physics_state[velocity_y]
+                gravity = physics_state[gravity]
+                print("Basket's up there! Try again!\n")
+    #Ball hits ceiling
+            overlapping_ball_and_ceiling = (canvas.find_overlapping(
+                0, 
+                0,
+                CANVAS_WIDTH,
+                0
+            ))
+            if ball in overlapping_ball_and_ceiling:
+                physics_state = freeze(velocity, velocity_x, velocity_y, gravity)
+                velocity = physics_state[velocity]
+                velocity_x = physics_state[velocity_x]
+                velocity_y = physics_state[velocity_y]
+                gravity = physics_state[gravity]
+                print("That shot might have worked outside. Try again!\n")
+    #Ball hits back wall
+            overlapping_ball_and_back_wall = (canvas.find_overlapping(
+                CANVAS_WIDTH, 
+                0,
+                CANVAS_WIDTH,
+                CANVAS_HEIGHT
+            ))
+            if ball in overlapping_ball_and_back_wall:
+                physics_state = freeze(velocity, velocity_x, velocity_y, gravity)
+                velocity = physics_state[velocity]
+                velocity_x = physics_state[velocity_x]
+                velocity_y = physics_state[velocity_y]
+                gravity = physics_state[gravity]
+                print("Home Run! But wrong sport. Try again!\n")  
+                    
+    #Set hit box for win condition
+            overlapping_ball_and_hoop = (canvas.find_overlapping(
+                midpoint - hoop_size/2 + ball_size/2,
+                bottom_y + 5,
+                midpoint + hoop_size/2 - ball_size/2 ,
+                bottom_y + 5
+        ))
+            if ball in overlapping_ball_and_hoop:
+                physics_state = freeze(velocity, velocity_x, velocity_y, gravity)
+                velocity = physics_state[velocity]
+                velocity_x = physics_state[velocity_x]
+                velocity_y = physics_state[velocity_y]
+                gravity = physics_state[gravity]
+                print("Boomshackalacka! You're the ultimate Hoopsketball champion!")        
+
+    #Victory condition - hangs banner with user's name on the wall
+       
+def freeze(velocity, velocity_x, velocity_y, gravity):
+    physics_state = {velocity : 0, velocity_x : 0, velocity_y : 0, gravity : 0}
+    return physics_state
+
+def ASCII_art():
+    print("""
+        Mike Billet's
+        
+         __   __    __     __    ____    ____   _   __  ____  _______  ____      _    _     _
+        |  | |  |  /  \   /  \  |  _ \  /  _ \ | | / / |  __||__   __||    \    / \  | |   | |
+        |  | |  | | /\ | | /\ | | | | ||  / \_|| |/ /  | |      | |   | |\  |  / ^ \ | |   | |
+        |  |_|  | ||  || ||  || | |_| | \ \__  |   /   | |__    | |   | |/ /  / /_\ \| |   | |
+        |   _   | ||  || ||  || |  __/   \__ \ |   \   |  __|   | |   |  _ \  |  _  || |   | |
+        |  | |  | ||  || ||  || | |      _  \ || |\ \  | |      | |   | / \ | | | | || |   | |
+        |  | |  | | \/ | | \/ | | |     | \_/ /| | \ \ | |__    | |   | \_/ | | | | || |__ | |__
+        |__| |__|  \__/   \__/  |_|     \____/ |_|  \_\|____|   |_|   |____/  |_| |_||____||____|
+
+        Software Version 7.0
+        """)
+
+def menu():
+    name = input("Enter your name to continue: ")
+    if name == str("Mike Billet"):
+        print("The Creator! We are not worthy!")
+    difficulty = str("blank")
+    while difficulty != str("easy") and difficulty != str("medium") and difficulty != str("hard"):
+        difficulty = input("Enter difficulty (easy/medium/hard): ")
+    shooter = str("blank")
+    while shooter != str("Kareem") and shooter != str("Larry") and shooter != str("Diana"):
+        shooter = input("Pick your shooter style (Kareem, Larry, or Diana): ")
+    print(f"Hello {name}, you find yourself in the grand Hoopsketball championship. \nDo you have what it takes to become the grand Hoopsketball champion?")
+    game_settings = [name, difficulty, shooter]
+    return game_settings
+
+
+def draw_backboard(canvas, hoop_size):   
+    fill = '#ADD8E6'
+    outline = "black"
+    canvas.create_rectangle(
+        left_x,
+        top_y,
+        right_x,
+        bottom_y, 
+        fill,
+        outline
+    )
+
+def draw_hoop(canvas, hoop_size):
+    hoop = canvas.create_oval(
+        midpoint - hoop_size/2,
+        bottom_y - 5,
+        midpoint + hoop_size/2,
+        bottom_y + 5,
+        'white',
+        "black"
+    )
+
+def draw_net(canvas, hoop_size, net_count):   
+#draws post
+    canvas.create_rectangle(
+        midpoint - 5,
+        bottom_y,
+        midpoint + 5,
+        CANVAS_HEIGHT,
+        "brown"
+    )
+    for i in range (net_count - 1):
+        canvas.create_line(
+            midpoint - hoop_size/2 + ((i + 1) * hoop_size / net_count),
+            bottom_y,
+            midpoint - hoop_size/2 + ((i + 1) * hoop_size / net_count),
+            bottom_y + 50,
+        )
+        net_left = canvas.create_line(
+            midpoint - hoop_size/2,
+            bottom_y,
+            midpoint - hoop_size/2 + hoop_size / net_count,
+            bottom_y + 50
+        )
+        canvas.create_line(
+            midpoint + hoop_size/2,
+            bottom_y,
+            midpoint + hoop_size/2 - hoop_size / net_count,
+            bottom_y + 50
+        )        
+
+def draw_shooter(canvas, shooter):
+    if shooter == str("Larry"):
+        skin_color = '#FBD99F'
+        jersey_fill = "green"
+        jersey_outline = "white"
+    if shooter == str("Kareem"):
+        skin_color = '#B59050'
+        jersey_fill = "yellow"
+        jersey_outline = "purple"
+    if shooter == str("Diana"):
+        skin_color = '#D1AF73'
+        jersey_fill = "purple"
+        jersey_outline = "black"
+    player_midpoint = 125
+    head_size = 50
+    torso_width = 40
+    head_apex = 400
+    waist_level = 530
+#Head
+    canvas.create_oval(
+    player_midpoint - head_size/2, 
+    head_apex, 
+    player_midpoint + head_size/2, 
+    head_apex + head_size, 
+    skin_color
+    )
+#Body
+#Shoulders
+    canvas.create_oval(
+        player_midpoint - torso_width/2, 
+        head_apex + head_size,
+        player_midpoint + torso_width/2, 
+        head_apex + head_size * 2, 
+        jersey_fill, 
+        jersey_outline)
+#Torso/Abdomen
+    canvas.create_rectangle(
+        player_midpoint - torso_width/2,
+        head_apex + head_size * 1.5,
+        player_midpoint + torso_width/2,
+        waist_level,
+        jersey_fill, 
+        jersey_outline)
+#Shorts
+    canvas.create_rectangle(
+        player_midpoint - torso_width/2,
+        waist_level,
+        player_midpoint + torso_width/2,
+        waist_level + 25,
+        jersey_fill,
+        jersey_outline
+    )
+#Legs
+    canvas.create_rectangle(
+        player_midpoint - torso_width/2,
+        waist_level + 25,
+        player_midpoint - torso_width/6,
+        CANVAS_HEIGHT,
+        skin_color
+    )
+    canvas.create_rectangle(
+        player_midpoint + torso_width/6,
+        waist_level + 25,
+        player_midpoint + torso_width/2,
+        CANVAS_HEIGHT,
+        skin_color
+    )
+#Arms
+    humerus_length = 60
+    forearm_length = humerus_length
+    arm_width = 15
+#Humerus
+    canvas.create_rectangle(
+        player_midpoint,
+        head_apex + head_size + arm_width,
+        player_midpoint + humerus_length,
+        head_apex + head_size + arm_width * 2,
+        skin_color
+    )
+ #Forearms
+    canvas.create_rectangle(
+        player_midpoint + humerus_length - 5,
+        head_apex + head_size + arm_width - forearm_length,
+        player_midpoint + humerus_length + arm_width - 5,
+        head_apex + head_size + arm_width,
+        skin_color
+    )
+#Hair (Diana only)
+    if shooter == str("Diana"):
+            canvas.create_oval(
+            player_midpoint - head_size/1.6,
+            head_apex,
+            player_midpoint + head_size/4,
+            head_apex + head_size/1.5,
+            "brown"
+        )
+#Bun
+            canvas.create_oval(
+            player_midpoint - head_size/1.2,
+            head_apex,
+            player_midpoint - head_size/3.3,
+            head_apex + head_size/2.3,
+            "brown"
+        )
+
+
+if __name__ == '__main__':
+    main()
+```
