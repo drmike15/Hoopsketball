@@ -35,6 +35,7 @@ def main():
     draw_net(canvas, hoop_size, net_count) #done
     draw_shooter(canvas, shooter) #done
     draw_post(canvas)
+    draw_rack(canvas)
     #Make ball object - done
     ball = 1
     overlapping_ball_and_hoop = []
@@ -45,28 +46,48 @@ def main():
         ball = canvas.create_oval(175, 400, 175 + ball_size, 400 + ball_size, "orange", "black")        
     #Get user input for launch angle
         angle = 91
-        while angle < 0 or angle > 90:
-            angle = float(input("Enter your launch angle (0 to 90): "))
+        while type(angle) != float or angle < 0 or angle > 90:
+            angle = (input("Enter your launch angle (0 to 90): "))
+            try:
+                angle = float(angle)
+            except:
+                print("Angle must be a numerical value")
+            else:
+                angle = float(angle)
+                if angle < 0 or angle > 90:
+                    print("Angle must be between 0 and 90")
     #Make launch velocity-determinator
     #Get user input for launch velocity
         velocity = 101
-        while velocity < 0 or velocity > 100:
-            velocity = float(input("Enter your launch speed (0 to 100): "))
-    #Define rules for projectile movement
-        #V_x = linear
-        #V_y affected follows gravity
+        while type(velocity) != float or velocity < 0 or velocity > 100:
+            velocity = input("Enter your launch speed (0 to 100): ")
+            try:
+                velocity = float(velocity)
+            except:
+                print("Launch speed must be a numerical value")
+            else:
+                velocity = float(velocity)
+                if velocity < 0 or velocity > 100:
+                    print("Velocity must be between 0 and 100")
+            if angle == 69 and velocity == 69:
+                print("nice")
+            print()            
+#Define rules for projectile movement
+#V_x = linear
         gravity = 1
         velocity = velocity / velocity_conversion_factor
         velocity_x = math.cos(3.1415 * angle/180) * velocity
         velocity_y = math.sin(3.1415 * angle/180) * velocity
-    #Ball motion program
-        while velocity_y > - 50 and velocity != 0:
+#Ball motion program
+#V_y affected follows gravity
+#Ball stoping (velocity 0) ends each round loop
+        while velocity != 0:
             velocity_y = velocity_y - gravity
             canvas.move(ball, velocity_x, -velocity_y )
             time.sleep(PAUSE_TIME)
 
-    #Set hit box for lose conditions
-    #Ball hits front rim/net
+#Set hit box for lose conditions
+#Ball hits front rim/net
             overlapping_ball_and_net = (canvas.find_overlapping(
                 midpoint - hoop_size/2 - 2,
                 bottom_y - 4,
@@ -81,7 +102,7 @@ def main():
                 gravity = physics_state[gravity]
                 print("Brick! Try again!\n")
                 count += 1
-    #Ball overshoots the hoop
+#Ball overshoots the hoop
             overlapping_ball_and_strike_zone = (canvas.find_overlapping(
                 midpoint + hoop_size / 2 + 3,
                 bottom_y - 4,
@@ -96,7 +117,7 @@ def main():
                 gravity = physics_state[gravity]
                 print("So close. Try again!\n")
                 count += 1
-    #Ball hits floor
+#Ball hits floor
             overlapping_ball_and_floor = (canvas.find_overlapping(
                 0, 
                 CANVAS_HEIGHT,
@@ -111,7 +132,7 @@ def main():
                 gravity = physics_state[gravity]
                 print("Basket's up there! Try again!\n")
                 count += 1
-    #Ball hits ceiling
+#Ball hits ceiling
             overlapping_ball_and_ceiling = (canvas.find_overlapping(
                 0, 
                 0,
@@ -126,7 +147,7 @@ def main():
                 gravity = physics_state[gravity]
                 print("That shot might have worked outside. Try again!\n")
                 count += 1
-    #Ball hits back wall
+#Ball hits back wall
             overlapping_ball_and_back_wall = (canvas.find_overlapping(
                 CANVAS_WIDTH, 
                 0,
@@ -142,7 +163,7 @@ def main():
                 print("Home Run! But wrong sport. Try again!\n")
                 count += 1  
                     
-    #Set hit box for win condition
+#Set hit box for win condition
             overlapping_ball_and_hoop = (canvas.find_overlapping(
                 midpoint - hoop_size/2 + ball_size/2,
                 bottom_y + 3,
@@ -155,14 +176,14 @@ def main():
                 velocity_x = physics_state[velocity_x]
                 velocity_y = physics_state[velocity_y]
                 gravity = physics_state[gravity]
-                draw_hoop(canvas, hoop_size)
                 draw_net(canvas, hoop_size, net_count)
+#Win statements                
                 if count == 0:
                     print("Wow, first try!")
                 if difficulty == str("easy"):
-                    print("Try medium on for size next time!")
+                    print("You got it!\n""Try medium on for size next time!")
                 if difficulty == str("medium"):
-                    print("On to hard mode!")
+                    print("Booyah!\n""On to hard mode!")
                 if difficulty == str("hard"):
                     print("Boomshackalacka! You're the ultimate Hoopsketball champion!")
                 if shooter == str("Larry") or shooter == str("larry"):
@@ -173,9 +194,12 @@ def main():
                     color_text = "purple"
                 canvas.create_text(100, 100, f'Congratulations, {name}!', font = 'Arial', font_size = 50, color = color_text)
                 canvas.create_text(100, 150, "You're the ultimate champion!", font = 'Arial', font_size = 50, color = color_text)
+                play_again = input("Would you like to play again? (y/n): ")
+                if play_again == str("y"):
+                    main()
+                else:
+                    print("Thanks for playing!")
 
-
-    #Victory condition - hangs banner with user's name on the wall
        
 def freeze(velocity, velocity_x, velocity_y, gravity):
     physics_state = {velocity : 0, velocity_x : 0, velocity_y : 0, gravity : 0}
@@ -200,17 +224,38 @@ Software Version 7.0
 def menu():
     name = input("Enter your name to continue: ")
     if name == str("Mike Billet"):
-        print("The Creator! We are not worthy!")
+        print("The Creator has graced us with his presence. We are not worthy!")
     difficulty = str("blank")
     while difficulty != str("easy") and difficulty != str("medium") and difficulty != str("hard"):
         difficulty = input("Enter difficulty (easy/medium/hard): ")
+        if difficulty != str("easy") and difficulty != str("medium") and difficulty != str("hard"):
+            print('Difficulty must be "easy" "medium" or "hard"\n')
     shooter = str("blank")
     while shooter != str("kareem") and shooter != str("larry") and shooter != str("diana") and shooter != str("Kareem") and shooter != str("Larry") and shooter != str("Diana"):
         shooter = input("Pick your shooter style (Kareem, Larry, or Diana): ")
+        if shooter != str("kareem") and shooter != str("larry") and shooter != str("diana") and shooter != str("Kareem") and shooter != str("Larry") and shooter != str("Diana"):
+            print('Shooter must be "Kareem" "Larry" or "Diana"')
         print()
-    print(f"Hello {name}, you find yourself in the ancient and noble game of Hoopsketball. \nDo you have what it takes to become the grand Hoopsketball champion?")
+    print(f"Hello {name}, you find yourself in the ancient and noble game of Hoopsketball. \nDo you have what it takes to become the grand Hoopsketball champion?\n")
     game_settings = [name, difficulty, shooter]
     return game_settings
+
+def draw_rack(canvas):
+    left_rack = 325
+    right_rack = left_rack + 125
+    top_rung_offset = 145
+    bottom_rung_offset = top_rung_offset - 60
+    canvas.create_rectangle(left_rack, CANVAS_HEIGHT - bottom_rung_offset, right_rack, CANVAS_HEIGHT - bottom_rung_offset + 5, "grey") #bottom rung
+    canvas.create_rectangle(left_rack, CANVAS_HEIGHT - top_rung_offset, right_rack, CANVAS_HEIGHT - top_rung_offset + 5, "grey") #top rung
+    canvas.create_rectangle(left_rack, CANVAS_HEIGHT - top_rung_offset - 10, left_rack + 10, CANVAS_HEIGHT - bottom_rung_offset + 10, "grey") #left post
+    canvas.create_rectangle(right_rack - 10, CANVAS_HEIGHT - top_rung_offset - 10, right_rack, CANVAS_HEIGHT - bottom_rung_offset + 10, "grey") #right post
+    #bottom balls
+    canvas.create_oval(335, CANVAS_HEIGHT - 85 - (ball_size - 10), 335 + (ball_size - 10), CANVAS_HEIGHT - 85, "orange", "black")
+    canvas.create_oval(335 + ball_size - 9, CANVAS_HEIGHT - 85 - (ball_size - 10), 335 + 2*(ball_size - 9), CANVAS_HEIGHT - 85, "orange", "black")
+    canvas.create_oval(335 + 2*(ball_size - 9), CANVAS_HEIGHT - 85 - (ball_size - 10), 335 + 3*(ball_size - 9), CANVAS_HEIGHT - 85, "orange", "black")  
+    #top balls
+    canvas.create_oval(335, CANVAS_HEIGHT - 145 - (ball_size - 10), 335 + (ball_size - 10), CANVAS_HEIGHT - 145, "orange", "black")
+    canvas.create_oval(335 + ball_size - 9, CANVAS_HEIGHT - 145 - (ball_size - 10), 335 + 2*(ball_size - 9), CANVAS_HEIGHT - 145, "orange", "black")
 
 def draw_room(canvas):
     canvas.create_rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "tan")
@@ -382,4 +427,4 @@ def draw_shooter(canvas, shooter):
 
 if __name__ == '__main__':
     main()
-```
+    ```
