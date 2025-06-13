@@ -4,7 +4,7 @@ import math
     
 CANVAS_WIDTH = 800
 CANVAS_HEIGHT = 600
-PAUSE_TIME = 1/50
+PAUSE_TIME = 1/100
 left_x = 600
 top_y = 250
 right_x = 700
@@ -12,6 +12,11 @@ bottom_y = 350
 midpoint = (left_x + right_x)/2
 ball_size = 40
 velocity_conversion_factor = 3
+left_rack = 300
+right_rack = left_rack + 125
+top_rung_offset = 145
+bottom_rung_offset = top_rung_offset - 60
+num_rounds = 5
 
 def main():
     canvas = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT)
@@ -35,14 +40,14 @@ def main():
     draw_net(canvas, hoop_size, net_count) #done
     draw_shooter(canvas, shooter) #done
     draw_post(canvas)
-    draw_rack(canvas)
+    balls = draw_rack(canvas, left_rack, right_rack, top_rung_offset, bottom_rung_offset)
     #Make ball object - done
     ball = 1
     overlapping_ball_and_hoop = []
     physics_state = {}
     count = 0
 #Enter game loop
-    while ball not in overlapping_ball_and_hoop:
+    while ball not in overlapping_ball_and_hoop and count < num_rounds:
         ball = canvas.create_oval(175, 400, 175 + ball_size, 400 + ball_size, "orange", "black")        
     #Get user input for launch angle
         angle = 91
@@ -60,15 +65,15 @@ def main():
     #Get user input for launch velocity
         velocity = 101
         while type(velocity) != float or velocity < 0 or velocity > 100:
-            velocity = input("Enter your launch speed (0 to 100): ")
+            velocity = input("Enter your launch speed (1 to 100): ")
             try:
                 velocity = float(velocity)
             except:
                 print("Launch speed must be a numerical value")
             else:
                 velocity = float(velocity)
-                if velocity < 0 or velocity > 100:
-                    print("Velocity must be between 0 and 100")
+                if velocity < 1 or velocity > 100:
+                    print("Velocity must be between 1 and 100")
             if angle == 69 and velocity == 69:
                 print("nice")
             print()            
@@ -101,7 +106,6 @@ def main():
                 velocity_y = physics_state[velocity_y]
                 gravity = physics_state[gravity]
                 print("Brick! Try again!\n")
-                count += 1
 #Ball overshoots the hoop
             overlapping_ball_and_strike_zone = (canvas.find_overlapping(
                 midpoint + hoop_size / 2 + 3,
@@ -116,7 +120,6 @@ def main():
                 velocity_y = physics_state[velocity_y]
                 gravity = physics_state[gravity]
                 print("So close. Try again!\n")
-                count += 1
 #Ball hits floor
             overlapping_ball_and_floor = (canvas.find_overlapping(
                 0, 
@@ -131,7 +134,6 @@ def main():
                 velocity_y = physics_state[velocity_y]
                 gravity = physics_state[gravity]
                 print("Basket's up there! Try again!\n")
-                count += 1
 #Ball hits ceiling
             overlapping_ball_and_ceiling = (canvas.find_overlapping(
                 0, 
@@ -146,7 +148,6 @@ def main():
                 velocity_y = physics_state[velocity_y]
                 gravity = physics_state[gravity]
                 print("That shot might have worked outside. Try again!\n")
-                count += 1
 #Ball hits back wall
             overlapping_ball_and_back_wall = (canvas.find_overlapping(
                 CANVAS_WIDTH, 
@@ -161,7 +162,6 @@ def main():
                 velocity_y = physics_state[velocity_y]
                 gravity = physics_state[gravity]
                 print("Home Run! But wrong sport. Try again!\n")
-                count += 1  
                     
 #Set hit box for win condition
             overlapping_ball_and_hoop = (canvas.find_overlapping(
@@ -179,7 +179,7 @@ def main():
                 draw_net(canvas, hoop_size, net_count)
 #Win statements                
                 if count == 0:
-                    print("Wow, first try!")
+                    print("Sweet Sassy Molassy, got it on the first try!")
                 if difficulty == str("easy"):
                     print("You got it!\n""Try medium on for size next time!")
                 if difficulty == str("medium"):
@@ -199,7 +199,20 @@ def main():
                     main()
                 else:
                     print("Thanks for playing!")
-
+#remove balls from rack
+        if count < len(balls):
+            ball_remover(canvas, count, balls)
+        count += 1
+        if count == num_rounds - 1:
+            print("Last ball, make this one count!")
+#end game if exceeds number of rounds                       
+    if count >= num_rounds:
+        print("Keep practicing!")
+        play_again = input("Would you like to play again? (y/n): ")
+        if play_again == str("y"):
+            main()
+        else:
+            print("Thanks for playing!")             
        
 def freeze(velocity, velocity_x, velocity_y, gravity):
     physics_state = {velocity : 0, velocity_x : 0, velocity_y : 0, gravity : 0}
@@ -240,28 +253,35 @@ def menu():
     game_settings = [name, difficulty, shooter]
     return game_settings
 
-def draw_rack(canvas):
-    left_rack = 325
-    right_rack = left_rack + 125
-    top_rung_offset = 145
-    bottom_rung_offset = top_rung_offset - 60
+def ball_counter(canvas, count, num_rounds):
+    rack_zone = canvas.find_overlapping(left_rack, CANVAS_HEIGHT - top_rung_offset, right_rack, CANVAS_HEIGHT - bottom_rung_offset)
+    print(rack_zone)
+    return(rack_zone)
+
+def ball_remover(canvas, count, balls):
+    removed_ball = balls[count]
+    canvas.delete(removed_ball)
+
+def draw_rack(canvas, left_rack, right_rack, top_rung_offset, bottom_rung_offset):
     canvas.create_rectangle(left_rack, CANVAS_HEIGHT - bottom_rung_offset, right_rack, CANVAS_HEIGHT - bottom_rung_offset + 5, "grey") #bottom rung
     canvas.create_rectangle(left_rack, CANVAS_HEIGHT - top_rung_offset, right_rack, CANVAS_HEIGHT - top_rung_offset + 5, "grey") #top rung
     canvas.create_rectangle(left_rack, CANVAS_HEIGHT - top_rung_offset - 10, left_rack + 10, CANVAS_HEIGHT - bottom_rung_offset + 10, "grey") #left post
     canvas.create_rectangle(right_rack - 10, CANVAS_HEIGHT - top_rung_offset - 10, right_rack, CANVAS_HEIGHT - bottom_rung_offset + 10, "grey") #right post
     #bottom balls
-    canvas.create_oval(335, CANVAS_HEIGHT - 85 - (ball_size - 10), 335 + (ball_size - 10), CANVAS_HEIGHT - 85, "orange", "black")
-    canvas.create_oval(335 + ball_size - 9, CANVAS_HEIGHT - 85 - (ball_size - 10), 335 + 2*(ball_size - 9), CANVAS_HEIGHT - 85, "orange", "black")
-    canvas.create_oval(335 + 2*(ball_size - 9), CANVAS_HEIGHT - 85 - (ball_size - 10), 335 + 3*(ball_size - 9), CANVAS_HEIGHT - 85, "orange", "black")  
+    ball_bottom_1 = canvas.create_oval(left_rack + 10, CANVAS_HEIGHT - 85 - (ball_size - 10), left_rack + 10 + (ball_size - 10), CANVAS_HEIGHT - 85, "orange", "black")
+    ball_bottom_2 = canvas.create_oval(left_rack + 10 + ball_size - 9, CANVAS_HEIGHT - 85 - (ball_size - 10), left_rack + 10 + 2*(ball_size - 9), CANVAS_HEIGHT - 85, "orange", "black")
+    #canvas.create_oval(left_rack + 10 + 2*(ball_size - 9), CANVAS_HEIGHT - 85 - (ball_size - 10), left_rack + 10 + 3*(ball_size - 9), CANVAS_HEIGHT - 85, "orange", "black")  
     #top balls
-    canvas.create_oval(335, CANVAS_HEIGHT - 145 - (ball_size - 10), 335 + (ball_size - 10), CANVAS_HEIGHT - 145, "orange", "black")
-    canvas.create_oval(335 + ball_size - 9, CANVAS_HEIGHT - 145 - (ball_size - 10), 335 + 2*(ball_size - 9), CANVAS_HEIGHT - 145, "orange", "black")
+    ball_top_1 = canvas.create_oval(left_rack + 10, CANVAS_HEIGHT - 145 - (ball_size - 10), left_rack + 10 + (ball_size - 10), CANVAS_HEIGHT - 145, "orange", "black")
+    ball_top_2 = canvas.create_oval(left_rack + 10 + ball_size - 9, CANVAS_HEIGHT - 145 - (ball_size - 10), left_rack + 10 + 2*(ball_size - 9), CANVAS_HEIGHT - 145, "orange", "black")
+    balls = [ball_top_1, ball_top_2, ball_bottom_1, ball_bottom_2]
+    #print(f"balls remaining = {balls}")
+    return balls
 
 def draw_room(canvas):
     canvas.create_rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "tan")
     canvas.create_rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT - 100, "beige")
    
-
 def draw_backboard(canvas):   
     fill = '#ADD8E6'
     outline = "black"
@@ -423,7 +443,6 @@ def draw_shooter(canvas, shooter):
             head_apex + head_size/2.3,
             "brown"
         )
-
 
 if __name__ == '__main__':
     main()
