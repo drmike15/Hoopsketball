@@ -68,7 +68,7 @@ def main():
     #Make launch velocity-determinator
     #Get user input for launch velocity
         velocity = 101
-        while type(velocity) != float or velocity < 0 or velocity > 100:
+        while type(velocity) != float or velocity < 1 or velocity > 100:
             velocity = input("Enter your launch speed (1 to 100): ")
             try:
                 velocity = float(velocity)
