@@ -14,13 +14,13 @@ midpoint = (left_x + right_x)/2
 
 ball_size = 40
 velocity_conversion_factor = 3
+num_rounds = 5
 
 #defines ball rack position
 left_rack = 300
 right_rack = left_rack + 125
 top_rung_offset = 145
 bottom_rung_offset = top_rung_offset - 60
-num_rounds = 5
 
 def main():
     canvas = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT)
