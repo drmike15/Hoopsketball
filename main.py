@@ -5,13 +5,17 @@ import math
 CANVAS_WIDTH = 800
 CANVAS_HEIGHT = 600
 PAUSE_TIME = 1/100
+#defines dimensions of backboard and hoop
 left_x = 600
 top_y = 250
 right_x = 700
 bottom_y = 350
 midpoint = (left_x + right_x)/2
+
 ball_size = 40
 velocity_conversion_factor = 3
+
+#defines ball rack position
 left_rack = 300
 right_rack = left_rack + 125
 top_rung_offset = 145
