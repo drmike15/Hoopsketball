@@ -253,15 +253,11 @@ def menu():
     game_settings = [name, difficulty, shooter]
     return game_settings
 
-def ball_counter(canvas, count, num_rounds):
-    rack_zone = canvas.find_overlapping(left_rack, CANVAS_HEIGHT - top_rung_offset, right_rack, CANVAS_HEIGHT - bottom_rung_offset)
-    print(rack_zone)
-    return(rack_zone)
-
 def ball_remover(canvas, count, balls):
     removed_ball = balls[count]
     canvas.delete(removed_ball)
 
+#Draws rack with balls, returns balls as a set balls[] to be removed by ball_remover()
 def draw_rack(canvas, left_rack, right_rack, top_rung_offset, bottom_rung_offset):
     canvas.create_rectangle(left_rack, CANVAS_HEIGHT - bottom_rung_offset, right_rack, CANVAS_HEIGHT - bottom_rung_offset + 5, "grey") #bottom rung
     canvas.create_rectangle(left_rack, CANVAS_HEIGHT - top_rung_offset, right_rack, CANVAS_HEIGHT - top_rung_offset + 5, "grey") #top rung
